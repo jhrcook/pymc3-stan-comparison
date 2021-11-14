@@ -1,0 +1,29 @@
+name: ppl-comp
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.9.7
+  - jupyterlab=3.2.3
+  - arviz
+  - black
+  - flake8
+  - isort
+  - jupyterlab_code_formatter
+  - matplotlib
+  - mkl
+  - mkl-service
+  - mypy
+  - numpy
+  - pandas
+  - plotnine
+  - pip=21.3.*
+  - pydantic
+  - pymc3=3.11.4
+  - pyyaml
+  - seaborn
+  - theano-pymc
+  - typer
+  - pip:
+    - pystan==3.3.0

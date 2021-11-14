@@ -5,7 +5,7 @@ from typing import NoReturn, Optional
 
 from typer import Typer
 
-from models.simple_pymc3_model import SimplePymc3ModelConfiguration, simple_pymc3_model
+from models import simple_linear_regression as lm
 from src.configuration import Model, get_model_configuration
 
 app = Typer()
@@ -28,9 +28,9 @@ def main(config_name: str, config_file: Optional[Path] = None) -> None:
     mdl_config = get_model_configuration(config_name, config_file)
 
     if mdl_config.model is Model.SIMPLE_PYMC3:
-        simple_pymc3_model(SimplePymc3ModelConfiguration(**mdl_config.config))
+        lm.simple_pymc3_model(lm.SimplePymc3ModelConfiguration(**mdl_config.config))
     elif mdl_config.model is Model.SIMPLE_STAN:
-        raise NotImplementedError()
+        lm.simple_stan_model(lm.SimpleStanModelConfiguration(**mdl_config.config))
     else:
         assert_never(mdl_config.model)
 
