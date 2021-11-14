@@ -16,6 +16,14 @@
     chains: 4
     cores: 2
 
+- name: "simple-stan-small"
+  model: "SIMPLE_STAN"
+  config:
+    size: 100
+    tune: 1000
+    draws: 1000
+    chains: 4
+
 - name: "simple-stan-large"
   model: "SIMPLE_STAN"
   config:

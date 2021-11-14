@@ -28,9 +28,15 @@ def main(config_name: str, config_file: Optional[Path] = None) -> None:
     mdl_config = get_model_configuration(config_name, config_file)
 
     if mdl_config.model is Model.SIMPLE_PYMC3:
-        lm.simple_pymc3_model(lm.SimplePymc3ModelConfiguration(**mdl_config.config))
+        lm.simple_pymc3_model(
+            name=config_name,
+            config=lm.SimplePymc3ModelConfiguration(**mdl_config.config),
+        )
     elif mdl_config.model is Model.SIMPLE_STAN:
-        lm.simple_stan_model(lm.SimpleStanModelConfiguration(**mdl_config.config))
+        lm.simple_stan_model(
+            name=config_name,
+            config=lm.SimpleStanModelConfiguration(**mdl_config.config),
+        )
     else:
         assert_never(mdl_config.model)
 

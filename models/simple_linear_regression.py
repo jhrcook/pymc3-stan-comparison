@@ -1,10 +1,14 @@
 """Simple linear regression PyMC3 and Stan models."""
 
+import pickle
+from pathlib import Path
 from typing import Union
 
+import arviz as az
 import numpy as np
 import pymc3 as pm
 import stan
+import stan.fit
 from pydantic import BaseModel, PositiveInt
 
 
@@ -12,6 +16,13 @@ def _generate_data(size: int) -> dict[str, np.ndarray]:
     x = np.random.normal(0, 1, size=size)
     y = 2.4 + 3 * x + np.random.normal(0, 0.2, size=size)
     return {"x": x, "y": y}
+
+
+def write_results(name: str, posterior: Union[stan.fit.Fit, az.InferenceData]) -> None:
+    out_path = Path("model-results") / f"{name}.pkl"
+    with open(out_path, "wb") as file:
+        pickle.dump(posterior, file)
+    return None
 
 
 # ---- PyMC3 ----
@@ -27,7 +38,7 @@ class SimplePymc3ModelConfiguration(BaseModel):
     cores: PositiveInt = 2
 
 
-def simple_pymc3_model(config: SimplePymc3ModelConfiguration) -> None:
+def simple_pymc3_model(name: str, config: SimplePymc3ModelConfiguration) -> None:
     data = _generate_data(config.size)
 
     with pm.Model():
@@ -44,6 +55,8 @@ def simple_pymc3_model(config: SimplePymc3ModelConfiguration) -> None:
             cores=config.cores,
             return_inferencedata=True,
         )
+    assert isinstance(trace, az.InferenceData)
+    write_results(name, trace)
     return None
 
 
@@ -81,7 +94,7 @@ class SimpleStanModelConfiguration(BaseModel):
     chains: PositiveInt = 4
 
 
-def simple_stan_model(config: SimpleStanModelConfiguration) -> None:
+def simple_stan_model(name: str, config: SimpleStanModelConfiguration) -> None:
     data = _generate_data(config.size)
     stan_data: dict[str, Union[int, np.ndarray]] = {"N": config.size}
     for p in ["x", "y"]:
@@ -91,4 +104,5 @@ def simple_stan_model(config: SimpleStanModelConfiguration) -> None:
     trace = model.sample(  # noqa: F841
         num_chains=config.chains, num_samples=config.draws, num_warmup=config.tune
     )
+    write_results(name, trace)
     return None
