@@ -1,0 +1,6 @@
+- name: "pymc3-simple-small"
+  model: "SIMPLE_PYMC3"
+  config:
+    size: 100
+    tune: 1000
+    draws: 1000
