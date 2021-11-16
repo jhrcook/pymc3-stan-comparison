@@ -23,4 +23,4 @@ class BasePymc3Configuration(BaseMcmcSamplingConfiguration):
 class BaseStanConfiguration(BaseMcmcSamplingConfiguration):
     """Base configuration for Stan models."""
 
-    remove_cache: bool = False
+    ...

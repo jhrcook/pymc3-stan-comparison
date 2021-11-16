@@ -22,6 +22,7 @@ configuration_names = get_configuration_names(CONFIG_FILE)
 localrules:
     all,
     notebook,
+    model_result_sizes,
 
 
 rule all:
@@ -39,7 +40,16 @@ rule fit_model:
     params:
         theano_dir=get_theano_compdir,
     shell:
-        "{params.theano_dir}" + "./fit.py {wildcards.name}"
+        "{params.theano_dir}" + "./fit.py fit {wildcards.name}"
+
+
+rule model_result_sizes:
+    input:
+        model_results=expand("model-results/{name}.pkl", name=configuration_names),
+    output:
+        csv="model-result-file-sizes.csv",
+    shell:
+        "./fit.py model-result-sizes 'model-results' {output.csv}"
 
 
 rule notebook:
