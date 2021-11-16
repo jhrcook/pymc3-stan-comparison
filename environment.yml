@@ -26,4 +26,4 @@ dependencies:
   - theano-pymc
   - typer
   - pip:
-    - pystan==3.3.0
+    - pystan
