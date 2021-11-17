@@ -48,6 +48,8 @@ rule model_result_sizes:
         model_results=expand("model-results/{name}.pkl", name=configuration_names),
     output:
         csv="model-result-file-sizes.csv",
+    conda:
+        "environment.yml"
     shell:
         "./fit.py model-result-sizes 'model-results' {output.csv}"
 
@@ -56,6 +58,7 @@ rule notebook:
     input:
         model_results=expand("model-results/{name}.pkl", name=configuration_names),
         nb="docs/index.ipynb",
+        model_sizes=rules.model_result_sizes.output.csv,
     output:
         html="docs/index.html",
     conda:
