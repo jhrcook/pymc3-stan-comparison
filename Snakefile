@@ -48,6 +48,8 @@ rule notebook:
         nb="docs/index.ipynb",
     output:
         html="docs/index.html",
+    conda:
+        "environment.yml"
     shell:
         "jupyter nbconvert --to notebook --inplace {input.nb} && "
         "jupyter nbconvert --to html {input.nb}"

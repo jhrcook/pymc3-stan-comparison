@@ -4,7 +4,7 @@
 #SBATCH -c 2
 #SBATCH -p priority
 #SBATCH -t 2-00:00
-#SBATCH --mem 32G
+#SBATCH --mem 64G
 #SBATCH -o logs/%j_pipeline.log
 #SBATCH -e logs/%j_pipeline.log
 
