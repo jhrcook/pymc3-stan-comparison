@@ -48,7 +48,7 @@ def model_result_sizes(dir: Path, output: Path) -> None:
     """
     _read_file_sizes(dir).assign(
         mb_lbl=lambda d: [f"{int(x)} MB" for x in d.mb],
-    ).to_csv(output)
+    ).to_csv(output, index=False)
 
 
 @app.command()

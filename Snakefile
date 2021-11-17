@@ -8,7 +8,7 @@ from src.pipeline_utils import get_theano_compdir, get_configuration_names
 
 # ---- Configure ----
 
-N_PROFILE_REPS: Final[int] = 10
+N_PROFILE_REPS: Final[int] = 2
 CONFIG_FILE = Path("model-configs.yaml")
 
 # ---- Setup ----
@@ -64,5 +64,5 @@ rule notebook:
     conda:
         "environment.yml"
     shell:
-        "jupyter nbconvert --to notebook --inplace {input.nb} && "
+        "jupyter nbconvert --to notebook --execute --inplace {input.nb} && "
         "jupyter nbconvert --to html {input.nb}"

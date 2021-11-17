@@ -51,15 +51,7 @@ def _generate_data(config: HierarchicalDataConfig) -> dict[str, np.ndarray]:
             np.random.normal(np.dot(X[i, :], beta[idx[i], :]), sigma, 1)
             for i in range(total_data_pts)
         ]
-    )
-    y = y.flatten()
-
-    print(f"mu_beta: {mu_beta}")
-    print(f"sigma_beta: {sigma_beta}")
-    print(f"beta shape: {beta.shape}")
-    print(f"X shape: {X.shape}")
-    print(f"y shape: {y.shape}")
-    # raise BaseException("JHC")
+    ).flatten()
     return {"X": X, "y": y, "idx": idx}
 
 
