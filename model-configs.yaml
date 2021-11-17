@@ -2,6 +2,8 @@
 
 - name: "simple_pymc3_100"
   model: "SIMPLE_PYMC3"
+  mem: "3000"
+  time: "00:30:00"
   config:
     size: 100
     tune: 1000
@@ -9,6 +11,8 @@
 
 - name: "simple_pymc3_1000"
   model: "SIMPLE_PYMC3"
+  mem: "8000"
+  time: "00:30:00"
   config:
     size: 1000
     tune: 1000
@@ -16,6 +20,8 @@
 
 - name: "simple_pymc3_10000"
   model: "SIMPLE_PYMC3"
+  mem: "10000"
+  time: "01:00:00"
   config:
     size: 10000
     tune: 1000
@@ -23,6 +29,8 @@
 
 - name: "simple_pymc3_100000"
   model: "SIMPLE_PYMC3"
+  mem: "30000"
+  time: "02:00:00"
   config:
     size: 100000
     tune: 1000
@@ -30,6 +38,8 @@
 
 - name: "simple_pymc3_1000000"
   model: "SIMPLE_PYMC3"
+  mem: "64000"
+  time: "08:00:00"
   config:
     size: 1000000
     tune: 1000
@@ -37,6 +47,8 @@
 
 - name: "simple_stan_100"
   model: "SIMPLE_STAN"
+  mem: "4000"
+  time: "00:15:00"
   config:
     size: 100
     tune: 1000
@@ -44,6 +56,8 @@
 
 - name: "simple_stan_1000"
   model: "SIMPLE_STAN"
+  mem: "4000"
+  time: "00:30:00"
   config:
     size: 1000
     tune: 1000
@@ -51,6 +65,8 @@
 
 - name: "simple_stan_10000"
   model: "SIMPLE_STAN"
+  mem: "8000"
+  time: "00:45:00"
   config:
     size: 10000
     tune: 1000
@@ -58,6 +74,8 @@
 
 - name: "simple_stan_100000"
   model: "SIMPLE_STAN"
+  mem: "32000"
+  time: "02:00:00"
   config:
     size: 100000
     tune: 1000
@@ -65,6 +83,8 @@
 
 - name: "simple_stan_1000000"
   model: "SIMPLE_STAN"
+  mem: "64000"
+  time: "05:00:00"
   config:
     size: 1000000
     tune: 1000
@@ -74,6 +94,8 @@
 
 - name: "hierarchical_pymc3_10-5-2"
   model: "HIERARCHICAL_PYMC3"
+  mem: "4000"
+  time: "00:15:00"
   config:
     N: 10
     J: 5
@@ -83,6 +105,8 @@
 
 - name: "hierarchical_stan_10-5-2"
   model: "HIERARCHICAL_STAN"
+  mem: "4000"
+  time: "00:15:00"
   config:
     N: 10
     J: 5
@@ -92,6 +116,8 @@
 
 - name: "hierarchical_pymc3_10-10-2"
   model: "HIERARCHICAL_PYMC3"
+  mem: "8000"
+  time: "00:45:00"
   config:
     N: 10
     J: 10
@@ -101,6 +127,8 @@
 
 - name: "hierarchical_stan_10-10-2"
   model: "HIERARCHICAL_STAN"
+  mem: "8000"
+  time: "00:45:00"
   config:
     N: 10
     J: 10
@@ -110,6 +138,8 @@
 
 - name: "hierarchical_pymc3_10-10-5"
   model: "HIERARCHICAL_PYMC3"
+  mem: "16000"
+  time: "02:00:00"
   config:
     N: 10
     J: 10
@@ -119,6 +149,8 @@
 
 - name: "hierarchical_stan_10-10-5"
   model: "HIERARCHICAL_STAN"
+  mem: "16000"
+  time: "02:00:00"
   config:
     N: 10
     J: 10
@@ -128,6 +160,8 @@
 
 - name: "hierarchical_pymc3_10-50-2"
   model: "HIERARCHICAL_PYMC3"
+  mem: "32000"
+  time: "03:00:00"
   config:
     N: 10
     J: 50
@@ -137,6 +171,8 @@
 
 - name: "hierarchical_stan_10-50-2"
   model: "HIERARCHICAL_STAN"
+  mem: "32000"
+  time: "03:00:00"
   config:
     N: 10
     J: 50

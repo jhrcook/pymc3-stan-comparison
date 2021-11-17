@@ -10,7 +10,7 @@ class BaseMcmcSamplingConfiguration(BaseModel):
     tune: PositiveInt
     draws: PositiveInt
     chains: PositiveInt = 4
-    cores: PositiveInt = 2
+    cores: PositiveInt = 4
 
 
 class BasePymc3Configuration(BaseMcmcSamplingConfiguration):

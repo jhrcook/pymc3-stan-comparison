@@ -5,11 +5,18 @@ from typing import Any
 import numpy as np
 import yaml
 
+ConfigName = str
+ConfigParams = dict[str, str]
 
-def get_configuration_names(config_file: Path) -> list[str]:
+
+def _make_param_dict(yaml_info: dict[str, Any]) -> ConfigParams:
+    return {"mem": yaml_info["mem"], "time": yaml_info["time"]}
+
+
+def get_configuration_information(config_file: Path) -> dict[ConfigName, ConfigParams]:
     with open(config_file, "r") as file:
-        configuration_names = [config["name"] for config in yaml.safe_load(file)]
-    return configuration_names
+        config_info = {x["name"]: _make_param_dict(x) for x in yaml.safe_load(file)}
+    return config_info
 
 
 # ---- Utilities

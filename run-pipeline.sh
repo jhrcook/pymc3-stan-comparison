@@ -11,17 +11,19 @@
 module unload python
 module load gcc conda2 slurm-drmaa/1.1.1
 
-# shellcheck source=/dev/null
 source "$HOME/.bashrc"
 conda activate ppl-comp-smk
 
 snakemake \
-    --cores 1 \
+    --jobs 9990 \
     --restart-times 0 \
     --latency-wait 120 \
     --use-conda \
     --keep-going \
-    --printshellcmds
+    --printshellcmds \
+    --drmaa " -c {cluster.cores} -p {cluster.partition} --mem={cluster.mem} -t {cluster.time} -o {cluster.out} -e {cluster.err} -J {cluster.J}" \
+    --cluster-config "pipeline_config.yaml" \
+    -n
 
 conda deactivate
 exit 0
