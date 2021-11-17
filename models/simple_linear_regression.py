@@ -1,6 +1,6 @@
 """Simple linear regression PyMC3 and Stan models."""
 
-from typing import Union
+from typing import Any, Union
 
 import arviz as az
 import numpy as np
@@ -9,7 +9,7 @@ import stan
 import stan.fit
 from pydantic import PositiveInt
 
-from .models_utls import delete_stan_build, write_results
+from .models_utils import write_results
 from .sampling_configurations import BasePymc3Configuration, BaseStanConfiguration
 
 # ---- Data generation ----
@@ -30,7 +30,8 @@ class SimplePymc3ModelConfiguration(BasePymc3Configuration):
     size: PositiveInt
 
 
-def simple_pymc3_model(name: str, config: SimplePymc3ModelConfiguration) -> None:
+def simple_pymc3_model(name: str, config_kwargs: dict[str, Any]) -> None:
+    config = SimplePymc3ModelConfiguration(**config_kwargs)
     data = _generate_data(config.size)
 
     with pm.Model():
@@ -40,7 +41,7 @@ def simple_pymc3_model(name: str, config: SimplePymc3ModelConfiguration) -> None
         sigma = pm.HalfNormal("sigma", 5)
         y = pm.Normal("y", mu, sigma, observed=data["y"])  # noqa: F841
 
-        trace = pm.sample(  # noqa: F841
+        trace = pm.sample(
             draws=config.draws,
             tune=config.tune,
             init=config.init,
@@ -85,18 +86,15 @@ class SimpleStanModelConfiguration(BaseStanConfiguration):
     size: PositiveInt
 
 
-def simple_stan_model(name: str, config: SimpleStanModelConfiguration) -> None:
+def simple_stan_model(name: str, config_kwargs: dict[str, Any]) -> None:
+    config = SimpleStanModelConfiguration(**config_kwargs)
     data = _generate_data(config.size)
     stan_data: dict[str, Union[int, np.ndarray]] = {"N": config.size}
     for p in ["x", "y"]:
         stan_data[p] = data[p].tolist()
 
     model = stan.build(simple_stan_code, data=stan_data)
-    if config.remove_cache:
-        delete_stan_build(model)
-        model = stan.build(simple_stan_code, data=stan_data)
-
-    trace = model.sample(  # noqa: F841
+    trace = model.sample(
         num_chains=config.chains, num_samples=config.draws, num_warmup=config.tune
     )
     write_results(name, trace)

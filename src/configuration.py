@@ -12,6 +12,8 @@ class Model(Enum):
 
     SIMPLE_PYMC3 = "SIMPLE_PYMC3"
     SIMPLE_STAN = "SIMPLE_STAN"
+    HIERARCHICAL_PYMC3 = "HIERARCHICAL_PYMC3"
+    HIERARCHICAL_STAN = "HIERARCHICAL_STAN"
 
 
 class ModelConfiguration(BaseModel):

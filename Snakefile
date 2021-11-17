@@ -8,7 +8,7 @@ from src.pipeline_utils import get_theano_compdir, get_configuration_names
 
 # ---- Configure ----
 
-N_PROFILE_REPS: Final[int] = 10
+N_PROFILE_REPS: Final[int] = 2
 CONFIG_FILE = Path("model-configs.yaml")
 
 # ---- Setup ----
@@ -22,6 +22,7 @@ configuration_names = get_configuration_names(CONFIG_FILE)
 localrules:
     all,
     notebook,
+    model_result_sizes,
 
 
 rule all:
@@ -39,17 +40,29 @@ rule fit_model:
     params:
         theano_dir=get_theano_compdir,
     shell:
-        "{params.theano_dir}" + "./fit.py {wildcards.name}"
+        "{params.theano_dir}" + "./fit.py fit {wildcards.name}"
+
+
+rule model_result_sizes:
+    input:
+        model_results=expand("model-results/{name}.pkl", name=configuration_names),
+    output:
+        csv="model-result-file-sizes.csv",
+    conda:
+        "environment.yml"
+    shell:
+        "./fit.py model-result-sizes 'model-results' {output.csv}"
 
 
 rule notebook:
     input:
         model_results=expand("model-results/{name}.pkl", name=configuration_names),
         nb="docs/index.ipynb",
+        model_sizes=rules.model_result_sizes.output.csv,
     output:
         html="docs/index.html",
     conda:
         "environment.yml"
     shell:
-        "jupyter nbconvert --to notebook --inplace {input.nb} && "
+        "jupyter nbconvert --to notebook --execute --inplace {input.nb} && "
         "jupyter nbconvert --to html {input.nb}"
