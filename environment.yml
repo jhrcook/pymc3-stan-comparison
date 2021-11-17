@@ -19,6 +19,7 @@ dependencies:
   - pandas
   - plotnine
   - pip=21.3.*
+  - pre-commit
   - pydantic
   - pymc3=3.11.4
   - pyyaml
@@ -26,4 +27,4 @@ dependencies:
   - theano-pymc
   - typer
   - pip:
-    - pystan==3.3.0
+    - pystan

@@ -1,25 +1,69 @@
-- name: "simple-pymc3-small"
+- name: "simple-pymc3-100"
   model: "SIMPLE_PYMC3"
   config:
     size: 100
     tune: 1000
     draws: 1000
-    chains: 4
-    cores: 2
 
-- name: "simple-pymc3-large"
+- name: "simple-pymc3-1000"
+  model: "SIMPLE_PYMC3"
+  config:
+    size: 1000
+    tune: 1000
+    draws: 1000
+
+- name: "simple-pymc3-10000"
   model: "SIMPLE_PYMC3"
   config:
     size: 10000
     tune: 1000
     draws: 1000
-    chains: 4
-    cores: 2
 
-- name: "simple-stan-large"
+- name: "simple-pymc3-100000"
+  model: "SIMPLE_PYMC3"
+  config:
+    size: 100000
+    tune: 1000
+    draws: 1000
+
+- name: "simple-pymc3-1000000"
+  model: "SIMPLE_PYMC3"
+  config:
+    size: 1000000
+    tune: 1000
+    draws: 1000
+
+- name: "simple-stan-100"
+  model: "SIMPLE_STAN"
+  config:
+    size: 100
+    tune: 1000
+    draws: 1000
+
+- name: "simple-stan-1000"
+  model: "SIMPLE_STAN"
+  config:
+    size: 1000
+    tune: 1000
+    draws: 1000
+
+- name: "simple-stan-10000"
   model: "SIMPLE_STAN"
   config:
     size: 10000
     tune: 1000
     draws: 1000
-    chains: 4
+
+- name: "simple-stan-100000"
+  model: "SIMPLE_STAN"
+  config:
+    size: 100000
+    tune: 1000
+    draws: 1000
+
+- name: "simple-stan-1000000"
+  model: "SIMPLE_STAN"
+  config:
+    size: 1000000
+    tune: 1000
+    draws: 1000
