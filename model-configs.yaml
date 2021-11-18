@@ -36,14 +36,14 @@
     tune: 1000
     draws: 1000
 
-- name: "simple_pymc3_1000000"
-  model: "SIMPLE_PYMC3"
-  mem: "64000"
-  time: "08:00:00"
-  config:
-    size: 1000000
-    tune: 1000
-    draws: 1000
+#- name: "simple_pymc3_1000000"
+#  model: "SIMPLE_PYMC3"
+#  mem: "80000"
+#  time: "12:00:00"
+#  config:
+#    size: 1000000
+#    tune: 1000
+#    draws: 1000
 
 - name: "simple_stan_100"
   model: "SIMPLE_STAN"
@@ -83,8 +83,8 @@
 
 - name: "simple_stan_1000000"
   model: "SIMPLE_STAN"
-  mem: "64000"
-  time: "05:00:00"
+  mem: "32000"
+  time: "12:00:00"
   config:
     size: 1000000
     tune: 1000

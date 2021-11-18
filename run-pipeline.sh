@@ -23,7 +23,6 @@ snakemake \
     --printshellcmds \
     --drmaa " -c {cluster.cores} -p {cluster.partition} --mem={cluster.mem} -t {cluster.time} -o {cluster.out} -e {cluster.err} -J {cluster.J}" \
     --cluster-config "pipeline_config.yaml" \
-    -n
 
 conda deactivate
 exit 0
