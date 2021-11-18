@@ -3,17 +3,32 @@ from typing import Any, Final
 
 import numpy as np
 import yaml
+from snakemake.io import Wildcards
 
-from src.pipeline_utils import get_theano_compdir, get_configuration_names
+from src.pipeline_utils import get_theano_compdir, get_configuration_information
 
 # ---- Configure ----
 
-N_PROFILE_REPS: Final[int] = 2
+N_PROFILE_REPS: Final[int] = 10
 CONFIG_FILE = Path("model-configs.yaml")
 
 # ---- Setup ----
 
-configuration_names = get_configuration_names(CONFIG_FILE)
+configurations = get_configuration_information(CONFIG_FILE)
+configuration_names = list(configurations.keys())
+
+
+def _get_config_params(w: Wildcards) -> dict[str, str]:
+    return configurations[w.name]
+
+
+def get_config_mem(w: Wildcards) -> str:
+    return _get_config_params(w)["mem"]
+
+
+def get_config_time(w: Wildcards) -> str:
+    return _get_config_params(w)["time"]
+
 
 # ---- Rules ----
 
@@ -21,8 +36,8 @@ configuration_names = get_configuration_names(CONFIG_FILE)
 # Steps to run locally.
 localrules:
     all,
-    notebook,
     model_result_sizes,
+    notebook,
 
 
 rule all:
@@ -38,6 +53,8 @@ rule fit_model:
     conda:
         "environment.yml"
     params:
+        mem=lambda w: get_config_mem(w),
+        time=lambda w: get_config_time(w),
         theano_dir=get_theano_compdir,
     shell:
         "{params.theano_dir}" + "./fit.py fit {wildcards.name}"

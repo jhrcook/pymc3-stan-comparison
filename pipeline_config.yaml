@@ -1,0 +1,10 @@
+__default__:
+  partition: "short"
+  cores: 4
+  out: "logs/%j_{rule}.log"
+  err: "logs/%j_{rule}.log"
+  mail: "NONE"
+fit_model:
+  mem: "{params.mem}"
+  time: "{params.time}"
+  J: "{wildcards.name}"

@@ -14,7 +14,11 @@ def delete_stan_build(mdl: StanModel) -> None:
 
 
 def write_results(name: str, posterior: Union[stan.fit.Fit, az.InferenceData]) -> None:
-    out_path = Path("model-results") / f"{name}.pkl"
+    out_dir = Path("model-results")
+    if not out_dir.exists():
+        out_dir.mkdir()
+
+    out_path = out_dir / f"{name}.pkl"
     with open(out_path, "wb") as file:
         pickle.dump(posterior, file)
     return None
