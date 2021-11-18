@@ -179,3 +179,25 @@
     K: 2
     tune: 1000
     draws: 1000
+
+# ---- Many-level hierarchical ----
+
+- name: "2tier-hier_pymc3_6-5-3-4"
+  model: "TWOTIER_PYMC3"
+  mem: "4000"
+  time: "00:30:00"
+  config:
+    N: 10
+    dims: [6, 5, 3, 4]
+    tune: 1000
+    draws: 1000
+
+- name: "2tier-hier_stan_6-5-3-4"
+  model: "TWOTIER_STAN"
+  mem: "4000"
+  time: "00:30:00"
+  config:
+    N: 10
+    dims: [6, 5, 3, 4]
+    tune: 1000
+    draws: 1000
