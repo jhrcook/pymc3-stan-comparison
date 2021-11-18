@@ -7,7 +7,7 @@ import numpy as np
 import pymc3 as pm
 import stan
 import stan.fit
-from pydantic import PositiveInt
+from pydantic import BaseModel, PositiveInt
 
 from .models_utils import write_results
 from .sampling_configurations import BasePymc3Configuration, BaseStanConfiguration
@@ -21,13 +21,21 @@ def _generate_data(size: int) -> dict[str, np.ndarray]:
     return {"x": x, "y": y}
 
 
+class SimpleLinearRegressionDataConfig(BaseModel):
+    """Configuration for the data for the simple linear regression model."""
+
+    size: PositiveInt
+
+
 # ---- PyMC3 ----
 
 
-class SimplePymc3ModelConfiguration(BasePymc3Configuration):
+class SimplePymc3ModelConfiguration(
+    BasePymc3Configuration, SimpleLinearRegressionDataConfig
+):
     """Configuration for the Simple PyMC3 model."""
 
-    size: PositiveInt
+    ...
 
 
 def simple_pymc3_model(name: str, config_kwargs: dict[str, Any]) -> None:
@@ -80,10 +88,12 @@ model {
 """
 
 
-class SimpleStanModelConfiguration(BaseStanConfiguration):
+class SimpleStanModelConfiguration(
+    BaseStanConfiguration, SimpleLinearRegressionDataConfig
+):
     """Configuration for the Simple PyMC3 model."""
 
-    size: PositiveInt
+    ...
 
 
 def simple_stan_model(name: str, config_kwargs: dict[str, Any]) -> None:
