@@ -35,7 +35,7 @@ def _generate_data(config: TwoTierHierarchicalDataConfig) -> pd.DataFrame:
     sigma_mu_alpha = np.abs(np.random.randn(1))
     mu_alpha = np.random.normal(mu_mu_alpha, sigma_mu_alpha, size=(c, d))
     sigma_alpha = np.abs(np.random.randn(1))
-    sigma = np.abs(np.random.normal(0, 0.5))
+    sigma = np.abs(np.random.normal(0, 0.2))
 
     a_to_c_idx = np.tile(np.arange(c), int(np.ceil(a / c)))[:a]
     a_to_c_idx.sort()
@@ -72,9 +72,9 @@ class DataIndices(BaseModel):
     b_d_idx: list[int]
 
 
-def _get_data_indices(data: pd.DataFrame) -> DataIndices:
+def _get_data_indices(data: pd.DataFrame, idx_plus: int = 0) -> DataIndices:
     def _prep(x: pd.Series) -> list[int]:
-        return (x.values + 1).flatten().astype(int).tolist()
+        return (x.values + idx_plus).flatten().astype(int).tolist()
 
     a_idx = data["a"]
     b_idx = data["b"]
@@ -200,9 +200,7 @@ model {
 
 
 def two_tier_hierarchical_stan_model(name: str, config_kwargs: dict[str, Any]) -> None:
-    config = TwoTierHierarchicalDataConfig(**config_kwargs)
-    data = _generate_data(config)
-    config = TwoTierHierPymc3ModelConfiguration(**config_kwargs)
+    config = TwoTierHierStanModelConfiguration(**config_kwargs)
     data = _generate_data(config)
 
     stan_data: dict[str, Union[int, np.ndarray]] = {
@@ -213,7 +211,7 @@ def two_tier_hierarchical_stan_model(name: str, config_kwargs: dict[str, Any]) -
     for n, value in zip(["A", "B", "C", "D"], config.get_dims()):
         stan_data[n] = value
 
-    for n, idx in _get_data_indices(data).dict().items():
+    for n, idx in _get_data_indices(data, idx_plus=1).dict().items():
         stan_data[n] = idx
 
     model = stan.build(_stan_model, data=stan_data)

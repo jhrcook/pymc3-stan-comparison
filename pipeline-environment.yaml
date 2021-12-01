@@ -7,3 +7,4 @@ dependencies:
   - python=3.9.7
   - snakemake=6.10.0
   - mamba
+  - drmaa=0.7.9
