@@ -1,13 +1,13 @@
 """2-tier hierarchical model with 2-dimensional parameters."""
 
-from dataclasses import dataclass
 from itertools import product
-from typing import Any
+from typing import Any, Union
 
 import arviz as az
 import numpy as np
 import pandas as pd
 import pymc3 as pm
+import stan
 from pydantic import BaseModel, PositiveInt
 
 from .models_utils import write_results
@@ -64,25 +64,30 @@ def _generate_data(config: TwoTierHierarchicalDataConfig) -> pd.DataFrame:
     return df
 
 
-@dataclass
-class DataIndices:
+class DataIndices(BaseModel):
 
-    a_idx: np.ndarray
-    b_idx: np.ndarray
-    a_c_idx: np.ndarray
-    b_d_idx: np.ndarray
+    a_idx: list[int]
+    b_idx: list[int]
+    a_c_idx: list[int]
+    b_d_idx: list[int]
 
 
 def _get_data_indices(data: pd.DataFrame) -> DataIndices:
-    a_idx = np.array(data["a"].values.flatten())
-    b_idx = np.array(data["b"].values.flatten())
-    a_c_idx = np.array(
-        data.copy()[["a", "c"]].drop_duplicates().sort_values("a")["c"].values.flatten()
+    def _prep(x: pd.Series) -> list[int]:
+        return (x.values + 1).flatten().astype(int).tolist()
+
+    a_idx = data["a"]
+    b_idx = data["b"]
+    a_c_idx = data.copy()[["a", "c"]].drop_duplicates().sort_values("a")["c"]
+
+    b_d_idx = data.copy()[["b", "d"]].drop_duplicates().sort_values("b")["d"]
+
+    return DataIndices(
+        a_idx=_prep(a_idx),
+        b_idx=_prep(b_idx),
+        a_c_idx=_prep(a_c_idx),
+        b_d_idx=_prep(b_d_idx),
     )
-    b_d_idx = np.array(
-        data.copy()[["b", "d"]].drop_duplicates().sort_values("b")["d"].values.flatten()
-    )
-    return DataIndices(a_idx=a_idx, b_idx=b_idx, a_c_idx=a_c_idx, b_d_idx=b_d_idx)
 
 
 # ---- PyMC3 model ----
@@ -125,7 +130,6 @@ def two_tier_hierarchical_pymc3_model(name: str, config_kwargs: dict[str, Any]) 
         )
     assert isinstance(trace, az.InferenceData)
     write_results(name, trace)
-
     return None
 
 
@@ -139,9 +143,83 @@ class TwoTierHierStanModelConfiguration(
     ...
 
 
+_stan_model = """
+data {
+    int<lower=1> N;  // number of observations total
+
+    int<lower=1> A;
+    int<lower=1> B;
+    int<lower=1> C;
+    int<lower=1> D;
+    int<lower=1,upper=A> a_idx[N];
+    int<lower=1,upper=B> b_idx[N];
+    int<lower=1,upper=C> a_c_idx[A];
+    int<lower=1,upper=D> b_d_idx[B];
+
+    vector[N] y;
+}
+
+parameters {
+    real mu_mu_alpha;
+    real<lower=0> sigma_mu_alpha;
+
+    matrix[C, D] mu_alpha;
+    real<lower=0> sigma_alpha;
+
+    matrix[A, B] alpha;
+    real<lower=0> sigma;
+}
+
+model {
+    vector[N] mu;
+
+    mu_mu_alpha ~ normal(0, 1);
+    sigma_mu_alpha ~ normal(0, 1);
+    sigma_alpha ~ normal(0, 1);
+    sigma ~ normal(0, 2);
+
+    for (c in 1:C) {
+        for (d in 1:D) {
+            mu_alpha[c, d] ~ normal(mu_mu_alpha, sigma_mu_alpha);
+        }
+    }
+
+    for (a in 1:A) {
+        for (b in 1:B) {
+            alpha[a, b] ~ normal(mu_alpha[a_c_idx[a], b_d_idx[b]], sigma_alpha);
+        }
+    }
+
+    for(n in 1:N) {
+        mu[n] = alpha[a_idx[n], b_idx[n]];
+    }
+
+    y ~ normal(mu, sigma);
+}
+"""
+
+
 def two_tier_hierarchical_stan_model(name: str, config_kwargs: dict[str, Any]) -> None:
     config = TwoTierHierarchicalDataConfig(**config_kwargs)
     data = _generate_data(config)
-    print(data)
-    raise NotImplementedError()
+    config = TwoTierHierPymc3ModelConfiguration(**config_kwargs)
+    data = _generate_data(config)
+
+    stan_data: dict[str, Union[int, np.ndarray]] = {
+        "N": data.shape[0],
+        "y": np.array(data["y"].values),
+    }
+
+    for n, value in zip(["A", "B", "C", "D"], config.get_dims()):
+        stan_data[n] = value
+
+    for n, idx in _get_data_indices(data).dict().items():
+        stan_data[n] = idx
+
+    model = stan.build(_stan_model, data=stan_data)
+    trace = model.sample(
+        num_chains=config.chains, num_samples=config.draws, num_warmup=config.tune
+    )
+    write_results(name, trace)
+
     return None
