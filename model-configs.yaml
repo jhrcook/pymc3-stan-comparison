@@ -201,3 +201,43 @@
     dims: [6, 5, 3, 4]
     tune: 1000
     draws: 1000
+
+- name: "2tier-hier_pymc3_10-10-5-5"
+  model: "TWOTIER_PYMC3"
+  mem: "32000"
+  time: "04:00:00"
+  config:
+    N: 10
+    dims: [10, 10, 5, 5]
+    tune: 1000
+    draws: 1000
+
+- name: "2tier-hier_stan_10-10-5-5"
+  model: "TWOTIER_STAN"
+  mem: "12000"
+  time: "04:00:00"
+  config:
+    N: 10
+    dims: [10, 10, 5, 5]
+    tune: 1000
+    draws: 1000
+
+- name: "2tier-hier_pymc3_20-15-10-12"
+  model: "TWOTIER_PYMC3"
+  mem: "64000"
+  time: "08:00:00"
+  config:
+    N: 20
+    dims: [20, 15, 10, 12]
+    tune: 1000
+    draws: 1000
+
+- name: "2tier-hier_stan_20-15-10-12"
+  model: "TWOTIER_STAN"
+  mem: "20000"
+  time: "08:00:00"
+  config:
+    N: 20
+    dims: [20, 15, 10, 12]
+    tune: 1000
+    draws: 1000
