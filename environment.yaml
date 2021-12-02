@@ -23,6 +23,7 @@ dependencies:
   - pydantic
   - pyjanitor=0.21.*
   - pymc3=3.11.4
+  - python-dotenv
   - pyyaml
   - seaborn
   - theano-pymc
