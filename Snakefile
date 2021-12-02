@@ -1,18 +1,26 @@
+import os
 from pathlib import Path
 from typing import Any, Final
 
 import numpy as np
 import yaml
 from snakemake.io import Wildcards
+from dotenv import load_dotenv
 
 from src.pipeline_utils import get_theano_compdir, get_configuration_information
 
+load_dotenv()
+
 # ---- Configure ----
 
-N_PROFILE_REPS: Final[int] = 10
-CONFIG_FILE = Path("model-configs.yaml")
+N_PROFILE_REPS: int = os.environ.get("N_PROFILE_REPS", 5)
+CONFIG_FILE: Path = Path(os.environ["CONFIG_FILE"])
+MODEL_FILES_DIR = Path(os.environ.get("MODEL_FILES_DIR", None))
 
 # ---- Setup ----
+
+if not MODEL_FILES_DIR.exists():
+    MODEL_FILES_DIR.mkdir()
 
 configurations = get_configuration_information(CONFIG_FILE)
 configuration_names = list(configurations.keys())
@@ -57,23 +65,27 @@ rule fit_model:
         time=lambda w: get_config_time(w),
         theano_dir=get_theano_compdir,
     shell:
-        "{params.theano_dir}" + "./fit.py fit {wildcards.name}"
+        f"{{params.theano_dir}} ./fit.py fit {{wildcards.name}} {CONFIG_FILE} --save-dir={MODEL_FILES_DIR}"
 
 
 rule model_result_sizes:
     input:
-        model_results=expand("model-results/{name}.pkl", name=configuration_names),
+        model_results=expand(
+            str(MODEL_FILES_DIR / "{name}.pkl"), name=configuration_names
+        ),
     output:
         csv="model-result-file-sizes.csv",
     conda:
         "environment.yaml"
     shell:
-        "./fit.py model-result-sizes 'model-results' {output.csv}"
+        f"./fit.py model-result-sizes {MODEL_FILES_DIR} {{output.csv}}"
 
 
 rule notebook:
     input:
-        model_results=expand("model-results/{name}.pkl", name=configuration_names),
+        model_results=expand(
+            str(MODEL_FILES_DIR / "{name}.pkl"), name=configuration_names
+        ),
         nb="docs/index.ipynb",
         model_sizes=rules.model_result_sizes.output.csv,
     output:

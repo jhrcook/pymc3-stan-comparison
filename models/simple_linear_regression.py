@@ -9,7 +9,6 @@ import stan
 import stan.fit
 from pydantic import BaseModel, PositiveInt
 
-from .models_utils import write_results
 from .sampling_configurations import BasePymc3Configuration, BaseStanConfiguration
 
 # ---- Data generation ----
@@ -38,7 +37,7 @@ class SimplePymc3ModelConfiguration(
     ...
 
 
-def simple_pymc3_model(name: str, config_kwargs: dict[str, Any]) -> None:
+def simple_pymc3_model(config_kwargs: dict[str, Any]) -> az.InferenceData:
     config = SimplePymc3ModelConfiguration(**config_kwargs)
     data = _generate_data(config.size)
 
@@ -59,8 +58,7 @@ def simple_pymc3_model(name: str, config_kwargs: dict[str, Any]) -> None:
             return_inferencedata=True,
         )
     assert isinstance(trace, az.InferenceData)
-    write_results(name, trace)
-    return None
+    return trace
 
 
 # ---- Stan ----
@@ -96,7 +94,7 @@ class SimpleStanModelConfiguration(
     ...
 
 
-def simple_stan_model(name: str, config_kwargs: dict[str, Any]) -> None:
+def simple_stan_model(config_kwargs: dict[str, Any]) -> az.InferenceData:
     config = SimpleStanModelConfiguration(**config_kwargs)
     data = _generate_data(config.size)
     stan_data: dict[str, Union[int, np.ndarray]] = {"N": config.size}
@@ -104,8 +102,8 @@ def simple_stan_model(name: str, config_kwargs: dict[str, Any]) -> None:
         stan_data[p] = data[p].tolist()
 
     model = stan.build(simple_stan_code, data=stan_data)
-    trace = model.sample(
+    fit = model.sample(
         num_chains=config.chains, num_samples=config.draws, num_warmup=config.tune
     )
-    write_results(name, trace)
-    return None
+    trace = az.from_pystan(posterior=fit)
+    return trace
