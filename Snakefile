@@ -13,9 +13,9 @@ load_dotenv()
 
 # ---- Configure ----
 
-N_PROFILE_REPS: int = os.environ.get("N_PROFILE_REPS", 5)
+N_PROFILE_REPS: int = int(os.environ.get("N_PROFILE_REPS", 5))
 CONFIG_FILE: Path = Path(os.environ["CONFIG_FILE"])
-MODEL_FILES_DIR = Path(os.environ.get("MODEL_FILES_DIR", None))
+MODEL_FILES_DIR: Path = Path(os.environ.get("MODEL_FILES_DIR", None))
 
 # ---- Setup ----
 
@@ -55,7 +55,7 @@ rule all:
 
 rule fit_model:
     output:
-        res="model-results/{name}.pkl",
+        res=f"{MODEL_FILES_DIR}/{{name}}.pkl",
     benchmark:
         repeat("benchmarks/{name}.tsv", N_PROFILE_REPS)
     conda:

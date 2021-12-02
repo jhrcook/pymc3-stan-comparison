@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 
 from models import hierarchical_model as hier
 from models import simple_linear_regression as lm
+from models import two_teir_hierarchical as tth
 
 
 @unique
@@ -33,6 +34,8 @@ MODEL_CALLER_MAP: Final[dict[Model, ModelCallable]] = {
     Model.SIMPLE_STAN: lm.simple_stan_model,
     Model.HIERARCHICAL_PYMC3: hier.hierarchical_pymc3_model,
     Model.HIERARCHICAL_STAN: hier.hierarchical_stan_model,
+    Model.TWOTIER_PYMC3: tth.two_tier_hierarchical_pymc3_model,
+    Model.TWOTIER_STAN: tth.two_tier_hierarchical_stan_model,
 }
 
 
