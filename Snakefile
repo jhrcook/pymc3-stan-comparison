@@ -51,7 +51,7 @@ rule fit_model:
     benchmark:
         repeat("benchmarks/{name}.tsv", N_PROFILE_REPS)
     conda:
-        "environment.yml"
+        "environment.yaml"
     params:
         mem=lambda w: get_config_mem(w),
         time=lambda w: get_config_time(w),
@@ -66,7 +66,7 @@ rule model_result_sizes:
     output:
         csv="model-result-file-sizes.csv",
     conda:
-        "environment.yml"
+        "environment.yaml"
     shell:
         "./fit.py model-result-sizes 'model-results' {output.csv}"
 
@@ -79,7 +79,7 @@ rule notebook:
     output:
         html="docs/index.html",
     conda:
-        "environment.yml"
+        "environment.yaml"
     shell:
         "jupyter nbconvert --to notebook --execute --inplace {input.nb} && "
         "jupyter nbconvert --to html {input.nb}"

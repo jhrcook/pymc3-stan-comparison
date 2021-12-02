@@ -1,12 +1,26 @@
 # Comparing performance of PyMC3 and Stan
 
 The goal of this project is to compare the performance between two popular probabilistic programming languages, [Stan](https://mc-stan.org) and [PyMC3](https://docs.pymc.io/en/v3/).
-The results can be found here: [jhrcook.github.io/pymc3-stan-comparison/](https://jhrcook.github.io/pymc3-stan-comparison/)
 
-> This project is functional, but still a work in progress and things may change.
+**The results can be found here: [jhrcook.github.io/pymc3-stan-comparison/](https://jhrcook.github.io/pymc3-stan-comparison/)**
 
-Contributions are welcome!
-Please see the guide below and feel free to ask for [help](https://github.com/jhrcook/pymc3-stan-comparison/issues).
+**Contributions are welcome!**
+To add a new type of model, please see the guide below and feel free to ask for [help](https://github.com/jhrcook/pymc3-stan-comparison/issues).
+You can also contribute to the data analysis by editing the analysis notebook: [docs/index.ipynb](docs/index.ipynb).
+
+> This project is functional, but still a work in progress.
+
+## Table of Contents
+
+1. [Process overview](#process-overview)
+1. [Contributing](#contributing)
+1. [Running the pipeline](#running-the-pipeline)
+
+---
+
+## Process overview
+
+(TODO) - describe the pipeline and configuration system; using snakemake to profile which uses `psutil`.
 
 ## Contributing
 
@@ -39,7 +53,7 @@ The example below runs the simplest linear regression PyMC3 model:
 Setup your Python virtual environment using `conda` with the command below:
 
 ```bash
-conda env create -f environment.yml
+conda env create -f environment.yaml
 ```
 
 It is recommended to try running the two simplest PyMC3 and Stan models to help check your system is ready:
@@ -50,6 +64,13 @@ It is recommended to try running the two simplest PyMC3 and Stan models to help 
 ```
 
 If either of these fail, please open an [issue](https://github.com/jhrcook/pymc3-stan-comparison/issues) on GitHub.
+
+I recommend creating a new git branch and working on there.
+Please give the branch a descriptive name (e.g. if you are adding Gaussian process models name it `gaussian-process`).
+
+```bash
+git checkout -b <new-branch-name>
+```
 
 ### Define a new model
 
@@ -86,6 +107,9 @@ Below are the configuration classes for the PyMC3 and Stan simple linear regress
 Note that the ellipses `...` are actually used in the code because there are no additional parameters to specify – everything is inherited from `BasePymc3Configuration` and `SimpleLinearRegressionDataConfig`.
 
 ```python3
+from .sampling_configurations import BasePymc3Configuration, BaseStanConfiguration
+
+
 class SimplePymc3ModelConfiguration(
     BasePymc3Configuration, SimpleLinearRegressionDataConfig
 ):
@@ -107,7 +131,7 @@ class SimpleStanModelConfiguration(
 ### Setup
 
 ```bash
-conda env create -f pipeline-environment.yml
+conda env create -f pipeline-environment.yaml
 ```
 
 On O2, I can run the following command:

@@ -144,7 +144,7 @@ def hierarchical_stan_model(name: str, config_kwargs: dict[str, Any]) -> None:
         stan_data[p] = data[p]
 
     model = stan.build(_stan_model, data=stan_data)
-    trace = model.sample(  # noqa: F841
+    trace = model.sample(
         num_chains=config.chains, num_samples=config.draws, num_warmup=config.tune
     )
     write_results(name, trace)
