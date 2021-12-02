@@ -8,7 +8,6 @@ import pymc3 as pm
 import stan
 from pydantic import BaseModel, PositiveInt
 
-from .models_utils import write_results
 from .sampling_configurations import BasePymc3Configuration, BaseStanConfiguration
 
 
@@ -55,7 +54,7 @@ def _generate_data(config: HierarchicalDataConfig) -> dict[str, np.ndarray]:
     return {"X": X, "y": y, "idx": idx}
 
 
-def hierarchical_pymc3_model(name: str, config_kwargs: dict[str, Any]) -> None:
+def hierarchical_pymc3_model(config_kwargs: dict[str, Any]) -> az.InferenceData:
     config = HierarchicalPymc3ModelConfiguration(**config_kwargs)
     data = _generate_data(config)
     idx = data["idx"]
@@ -81,8 +80,7 @@ def hierarchical_pymc3_model(name: str, config_kwargs: dict[str, Any]) -> None:
             return_inferencedata=True,
         )
     assert isinstance(trace, az.InferenceData)
-    write_results(name, trace)
-    return None
+    return trace
 
 
 _stan_model = """
@@ -131,7 +129,7 @@ class HierarchicalStanModelConfiguration(HierarchicalDataConfig, BaseStanConfigu
     ...
 
 
-def hierarchical_stan_model(name: str, config_kwargs: dict[str, Any]) -> None:
+def hierarchical_stan_model(config_kwargs: dict[str, Any]) -> az.InferenceData:
     config = HierarchicalStanModelConfiguration(**config_kwargs)
     data = _generate_data(config)
     stan_data: dict[str, Union[int, np.ndarray]] = {
@@ -144,8 +142,8 @@ def hierarchical_stan_model(name: str, config_kwargs: dict[str, Any]) -> None:
         stan_data[p] = data[p]
 
     model = stan.build(_stan_model, data=stan_data)
-    trace = model.sample(  # noqa: F841
+    fit = model.sample(  # noqa: F841
         num_chains=config.chains, num_samples=config.draws, num_warmup=config.tune
     )
-    write_results(name, trace)
-    return None
+    trace = az.from_pystan(posterior=fit)
+    return trace
