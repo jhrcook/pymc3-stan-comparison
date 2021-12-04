@@ -132,7 +132,7 @@ def check_benchmarks_and_model_files(
     benchmark_dir: Path,
     model_file_dir: Path,
     config_file: Optional[Path] = None,
-    prune: bool = True,
+    prune: bool = False,
 ) -> None:
     """Check that a benchmark and posterior file exist for each model configuration.
 
@@ -143,7 +143,7 @@ def check_benchmarks_and_model_files(
         exists, a default will be looked for in the environment, else an error is
         raised.
         prune (bool, optional): Should files for a model be removed if it is missing one
-        of the checked files? Defaults to True.
+        of the checked files? Defaults to False.
 
     Raises:
         FileNotFoundError: Raised if any models are missing a required file.

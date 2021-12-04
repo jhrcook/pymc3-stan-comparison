@@ -4,7 +4,7 @@ from typing import Any, Final
 
 import numpy as np
 import yaml
-from snakemake.io import Wildcards
+from snakemake.io import Wildcards, touch
 from dotenv import load_dotenv
 
 from src.pipeline_utils import get_theano_compdir, get_configuration_information
@@ -50,6 +50,7 @@ localrules:
     all,
     model_result_sizes,
     notebook,
+    check_model_outputs,
 
 
 rule all:
@@ -73,8 +74,23 @@ rule fit_model:
         f"{{params.theano_dir}} ./fit.py fit {{wildcards.name}} {CONFIG_FILE} --save-dir={MODEL_FILES_DIR}"
 
 
+rule check_model_outputs:
+    input:
+        model_results=expand(
+            str(MODEL_FILES_DIR / "{name}.pkl"), name=configuration_names
+        ),
+        config=CONFIG_FILE,
+    conda:
+        "environment.yaml"
+    output:
+        touch_file=touch(".check-model-outputs.touch"),
+    shell:
+        f"./fit.py fit benchmarks {MODEL_FILES_DIR} --config-file={{input.config}} --prune"
+
+
 rule model_result_sizes:
     input:
+        mdl_file_check=rules.check_model_outputs.output.touch_file,
         model_results=expand(
             str(MODEL_FILES_DIR / "{name}.pkl"), name=configuration_names
         ),
