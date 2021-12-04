@@ -10,6 +10,11 @@ You can also contribute to the data analysis by editing the analysis notebook: [
 
 > This project is functional, but still a work in progress.
 
+## To-Do
+
+- finish documentation
+- more models and configurations (see GitHub Issues for requests for model types)
+
 ## Table of Contents
 
 1. [Process overview](#process-overview)

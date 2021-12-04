@@ -2,11 +2,13 @@
 
 import os
 import pickle
+from itertools import product
 from pathlib import Path
 from typing import Optional
 
 import arviz as az
 import pandas as pd
+from colorama import Style
 from dotenv import load_dotenv
 from typer import Typer
 
@@ -69,14 +71,19 @@ def _check_config_file(config_file: Optional[Path]) -> Path:
 
 @app.command()
 def fit(
-    config_name: str, config_file: Optional[Path], save_dir: Optional[Path] = None
+    config_name: str,
+    config_file: Optional[Path] = None,
+    save_dir: Optional[Path] = None,
 ) -> None:
     """Fit a model from the configuration file.
 
     Args:
         config_name (str): Name of the model.
-        config_file (Optional[Path]): Path to the configuration file. If not exists, a
-        default will be looked for in the environment, else an error is raised.
+        config_file (Optional[Path], optional): Path to the configuration file. If not
+        exists, a default will be looked for in the environment, else an error is
+        raised.
+        save_dir (Optional[Path], optional): Directory to which model posterior files
+        should be saved.
     """
     config_file = _check_config_file(config_file)
     mdl_config = config.get_model_configuration(config_name, config_file)
@@ -91,6 +98,82 @@ def check_config(config_file: Optional[Path] = None) -> None:
     _ = config.read_configuration_file(config_file)
     print("Configuration file successfully read and parsed.")
     return None
+
+
+def _get_file_names(dir: Path) -> set[str]:
+    return set([f.name.replace(f.suffix, "") for f in dir.iterdir()])
+
+
+def _print_missing_files(name: str, mdl_names: set[str]) -> None:
+    if len(mdl_names) == 0:
+        return None
+    print(Style.BRIGHT + f"Missing {name}:" + Style.RESET_ALL)
+    _mdl_names = list(mdl_names)
+    _mdl_names.sort()
+    for mdl_name in _mdl_names:
+        print("  " + mdl_name)
+
+
+def _remove_files_with_name(mdl_names: set[str], dirs: list[Path]) -> None:
+    all_files: set[Path] = set()
+    n_removed: int = 0
+    for _dir in dirs:
+        all_files = all_files.union(set(_dir.iterdir()))
+    for mdl_name, file in product(mdl_names, all_files):
+        if mdl_name in file.name:
+            n_removed += 1
+            file.unlink(missing_ok=True)
+    print(Style.BRIGHT + f"Removed {n_removed} files." + Style.RESET_ALL)
+    return None
+
+
+@app.command()
+def check_benchmarks_and_model_files(
+    benchmark_dir: Path,
+    model_file_dir: Path,
+    config_file: Optional[Path] = None,
+    prune: bool = True,
+) -> None:
+    """Check that a benchmark and posterior file exist for each model configuration.
+
+    Args:
+        benchmark_dir (Path): Directory with benchmark files.
+        model_file_dir (Path): Directory with model result files.
+        config_file (Optional[Path], optional): Path to the configuration file. If not
+        exists, a default will be looked for in the environment, else an error is
+        raised.
+        prune (bool, optional): Should files for a model be removed if it is missing one
+        of the checked files? Defaults to True.
+
+    Raises:
+        FileNotFoundError: Raised if any models are missing a required file.
+    """
+    config_file = _check_config_file(config_file)
+    mdl_configs = config.read_configuration_file(config_file)
+    all_benchmarks = _get_file_names(benchmark_dir)
+    all_model_files = _get_file_names(model_file_dir)
+
+    missing_benchmarks: set[str] = set()
+    missing_model_files: set[str] = set()
+
+    for mdl_config in mdl_configs.configurations:
+        name = mdl_config.name
+        if name not in all_benchmarks:
+            missing_benchmarks.add(name)
+        if name not in all_model_files:
+            missing_model_files.add(name)
+
+    _print_missing_files("benchmarks", missing_benchmarks)
+    _print_missing_files("model files", missing_model_files)
+    if prune:
+        _remove_files_with_name(
+            missing_benchmarks.union(missing_model_files),
+            [benchmark_dir, model_file_dir],
+        )
+    if len(missing_benchmarks) > 0 or len(missing_model_files) > 0:
+        raise FileNotFoundError(
+            "Missing benchmarks or model files -- see output above."
+        )
 
 
 if __name__ == "__main__":
