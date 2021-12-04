@@ -38,6 +38,10 @@ def get_config_time(w: Wildcards) -> str:
     return _get_config_params(w)["time"]
 
 
+def get_config_partition(w: Wildcards) -> str:
+    return _get_config_params(w)["partition"]
+
+
 # ---- Rules ----
 
 
@@ -63,6 +67,7 @@ rule fit_model:
     params:
         mem=lambda w: get_config_mem(w),
         time=lambda w: get_config_time(w),
+        partition=lambda w: get_config_time(w),
         theano_dir=get_theano_compdir,
     shell:
         f"{{params.theano_dir}} ./fit.py fit {{wildcards.name}} {CONFIG_FILE} --save-dir={MODEL_FILES_DIR}"

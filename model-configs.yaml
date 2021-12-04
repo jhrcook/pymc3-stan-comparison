@@ -238,7 +238,8 @@
 - name: "hierarchical_stan_10-10000-5"
   model: "HIERARCHICAL_STAN"
   mem: "64000"
-  time: "12:00:00"
+  time: "18:00:00"
+  partition: "medium"
   config:
     N: 10
     J: 10000
@@ -311,8 +312,8 @@
 
 - name: "2tier-hier_pymc3_100-200-20-40"
   model: "TWOTIER_PYMC3"
-  mem: "64000"
-  time: "08:00:00"
+  mem: "90000"
+  time: "12:00:00"
   config:
     N: 20
     dims: [100, 200, 20, 40]
