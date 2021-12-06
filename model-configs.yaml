@@ -238,7 +238,7 @@
 - name: "hierarchical_stan_10-10000-5"
   model: "HIERARCHICAL_STAN"
   mem: "64000"
-  time: "18:00:00"
+  time: "48:00:00"
   partition: "medium"
   config:
     N: 10

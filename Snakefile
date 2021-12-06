@@ -68,10 +68,10 @@ rule fit_model:
     params:
         mem=lambda w: get_config_mem(w),
         time=lambda w: get_config_time(w),
-        partition=lambda w: get_config_time(w),
+        partition=lambda w: get_config_partition(w),
         theano_dir=get_theano_compdir,
     shell:
-        f"{{params.theano_dir}} ./fit.py fit {{wildcards.name}} {CONFIG_FILE} --save-dir={MODEL_FILES_DIR}"
+        f"{{params.theano_dir}} ./fit.py fit {{wildcards.name}} --config-file={CONFIG_FILE} --save-dir={MODEL_FILES_DIR}"
 
 
 rule check_model_outputs:
@@ -85,7 +85,7 @@ rule check_model_outputs:
     output:
         touch_file=touch(".check-model-outputs.touch"),
     shell:
-        f"./fit.py fit benchmarks {MODEL_FILES_DIR} --config-file={{input.config}} --prune"
+        f"./fit.py check-benchmarks-and-model-files benchmarks {MODEL_FILES_DIR} --config-file={{input.config}} --no-prune"
 
 
 rule model_result_sizes:
