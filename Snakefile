@@ -17,6 +17,7 @@ load_dotenv()
 
 # ---- Configure ----
 
+N_SEPARATE_JOBS: int = int(os.environ.get("N_SEPARATE_JOBS", 5))
 N_PROFILE_REPS: int = int(os.environ.get("N_PROFILE_REPS", 5))
 CONFIG_FILE: Path = Path(os.environ["CONFIG_FILE"])
 MODEL_FILES_DIR: Path = Path(os.environ.get("MODEL_FILES_DIR", None))
@@ -27,7 +28,7 @@ if not MODEL_FILES_DIR.exists():
     MODEL_FILES_DIR.mkdir()
 
 configurations = get_configuration_information(CONFIG_FILE)
-configurations = make_replicates_configuration(configurations, N_PROFILE_REPS)
+configurations = make_replicates_configuration(configurations, N_SEPARATE_JOBS)
 configuration_names = list(configurations.keys())
 
 
@@ -73,6 +74,9 @@ rule all:
 rule fit_model:
     output:
         res=f"{MODEL_FILES_DIR}/{{name}}.netcdf",
+        fxn_time_file="benchmarks/{name}.fxntime",
+    benchmark:
+        repeat("benchmarks/{name}.tsv", N_PROFILE_REPS)
     conda:
         "environment.yaml"
     params:
@@ -85,7 +89,7 @@ rule fit_model:
     shell:
         (
             "{params.theano_dir} ./fit.py fit {wildcards.name} {params.config_name} "
-            + f"--config-file={CONFIG_FILE} --save-dir={MODEL_FILES_DIR}"
+            + f"--config-file={CONFIG_FILE} --save-dir={MODEL_FILES_DIR} "
         )
 
 

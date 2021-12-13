@@ -40,5 +40,5 @@ def make_replicates_configuration(config: ConfigInfo, n_reps: int) -> ConfigInfo
 
 def get_theano_compdir(*args: Any, **kwargs: Any) -> str:
     return (
-        f"THEANO_FLAGS='compiledir={tempfile.gettempdir()}/{np.random.randint(10000)}' "
+        f"THEANO_FLAGS='compiledir={tempfile.gettempdir()}/{np.random.randint(10000)}'"
     )

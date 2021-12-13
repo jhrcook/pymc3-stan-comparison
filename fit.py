@@ -3,6 +3,7 @@
 import os
 from itertools import product
 from pathlib import Path
+from time import time
 from typing import Optional
 
 import arviz as az
@@ -67,6 +68,19 @@ def _check_config_file(config_file: Optional[Path]) -> Path:
     return default_config_file
 
 
+def _write_function_call_time(fpath: Path, call_time: float) -> None:
+    if not fpath.parent.exists():
+        fpath.parent.mkdir(parents=True)
+    with open(fpath, "a") as file:
+        file.write(str(call_time))
+        file.write("\n")
+    return None
+
+
+def _make_call_time_benchmark_fname(name: str) -> Path:
+    return Path("benchmarks") / (name + ".fxntime")
+
+
 @app.command()
 def fit(
     name: str,
@@ -87,7 +101,12 @@ def fit(
     """
     config_file = _check_config_file(config_file)
     mdl_config = config.get_model_configuration(config_name, config_file)
+    tic = time()
     res = config.get_model_callable(mdl_config)(mdl_config.config)
+    toc = time()
+    _write_function_call_time(
+        fpath=_make_call_time_benchmark_fname(name), call_time=toc - tic
+    )
     _save_model_posterior(name=name, mdl_post=res, dir=save_dir)
     return None
 

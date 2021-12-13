@@ -238,8 +238,8 @@
 - name: "hierarchical_stan_10-10000-5"
   model: "HIERARCHICAL_STAN"
   mem: "64000"
-  time: "48:00:00"
-  partition: "medium"
+  time: "12:00:00"
+  partition: "small"
   config:
     N: 10
     J: 10000
