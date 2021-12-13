@@ -69,6 +69,7 @@ def _check_config_file(config_file: Optional[Path]) -> Path:
 
 @app.command()
 def fit(
+    name: str,
     config_name: str,
     config_file: Optional[Path] = None,
     save_dir: Optional[Path] = None,
@@ -76,9 +77,10 @@ def fit(
     """Fit a model from the configuration file.
 
     Args:
+        name (str): Unique name for this replicate.
         config_name (str): Name of the model.
         config_file (Optional[Path], optional): Path to the configuration file. If not
-        exists, a default will be looked for in the environment, else an error is
+        provided, a default will be looked for in the environment, else an error is
         raised.
         save_dir (Optional[Path], optional): Directory to which model posterior files
         should be saved.
@@ -86,7 +88,7 @@ def fit(
     config_file = _check_config_file(config_file)
     mdl_config = config.get_model_configuration(config_name, config_file)
     res = config.get_model_callable(mdl_config)(mdl_config.config)
-    _save_model_posterior(name=config_name, mdl_post=res, dir=save_dir)
+    _save_model_posterior(name=name, mdl_post=res, dir=save_dir)
     return None
 
 
