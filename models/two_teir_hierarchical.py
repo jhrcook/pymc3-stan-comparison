@@ -10,7 +10,6 @@ import pymc3 as pm
 import stan
 from pydantic import BaseModel, PositiveInt
 
-from .models_utils import write_results
 from .sampling_configurations import BasePymc3Configuration, BaseStanConfiguration
 
 # ---- Data ----
@@ -100,7 +99,9 @@ class TwoTierHierPymc3ModelConfiguration(
     ...
 
 
-def two_tier_hierarchical_pymc3_model(name: str, config_kwargs: dict[str, Any]) -> None:
+def two_tier_hierarchical_pymc3_model(
+    config_kwargs: dict[str, Any]
+) -> az.InferenceData:
     config = TwoTierHierPymc3ModelConfiguration(**config_kwargs)
     data = _generate_data(config)
 
@@ -129,8 +130,7 @@ def two_tier_hierarchical_pymc3_model(name: str, config_kwargs: dict[str, Any]) 
             return_inferencedata=True,
         )
     assert isinstance(trace, az.InferenceData)
-    write_results(name, trace)
-    return None
+    return trace
 
 
 # ---- Stan model ----
@@ -199,7 +199,7 @@ model {
 """
 
 
-def two_tier_hierarchical_stan_model(name: str, config_kwargs: dict[str, Any]) -> None:
+def two_tier_hierarchical_stan_model(config_kwargs: dict[str, Any]) -> az.InferenceData:
     config = TwoTierHierStanModelConfiguration(**config_kwargs)
     data = _generate_data(config)
 
@@ -215,9 +215,8 @@ def two_tier_hierarchical_stan_model(name: str, config_kwargs: dict[str, Any]) -
         stan_data[n] = idx
 
     model = stan.build(_stan_model, data=stan_data)
-    trace = model.sample(
+    fit = model.sample(
         num_chains=config.chains, num_samples=config.draws, num_warmup=config.tune
     )
-    write_results(name, trace)
-
-    return None
+    trace = az.from_pystan(posterior=fit)
+    return trace
