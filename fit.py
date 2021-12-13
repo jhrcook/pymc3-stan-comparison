@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-import pickle
 from itertools import product
 from pathlib import Path
 from typing import Optional
@@ -55,9 +54,8 @@ def _save_model_posterior(
     if not dir.exists():
         dir.mkdir()
 
-    out_path = dir / f"{name}.pkl"
-    with open(out_path, "wb") as file:
-        pickle.dump(mdl_post, file)
+    out_path = dir / f"{name}.netcdf"
+    mdl_post.to_netcdf(str(out_path))
     return None
 
 
