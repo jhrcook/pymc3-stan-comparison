@@ -6,11 +6,12 @@ import arviz as az
 import numpy as np
 import pandas as pd
 import pymc3 as pm
+import pymc3.math as pmmath
 import stan
 from pydantic import BaseModel, PositiveFloat, PositiveInt
 from scipy import stats
 
-from .models_utils import write_results
+from .models_utils import read_stan_code
 from .sampling_configurations import BasePymc3Configuration, BaseStanConfiguration
 
 
@@ -102,15 +103,15 @@ def _model_matrix(data: pd.DataFrame) -> np.ndarray:
     )
 
 
-def negbinom_pymc3_model(name: str, config_kwargs: dict[str, Any]) -> None:
+def negbinom_pymc3_model(config_kwargs: dict[str, Any]) -> az.InferenceData:
     config = NegBinomPymc3ModelConfiguration(**config_kwargs)
     data = _generate_data(config)
     X = _model_matrix(data)
 
     with pm.Model():
-        beta = pm.Normal("beta", 0, 5, shape=4)
-        eta = pm.Deterministic("eta", X * beta)
-        mu = pm.math.exp(eta)
+        beta = pm.Normal("beta", 0, 5, shape=(4, 1))
+        eta = pm.Deterministic("eta", pmmath.dot(X, beta))
+        mu = pmmath.exp(eta)
         alpha = pm.HalfCauchy("alpha", 10)
         y = pm.NegativeBinomial("y", mu, alpha, observed=data.nsneeze)  # noqa: F841
 
@@ -125,41 +126,23 @@ def negbinom_pymc3_model(name: str, config_kwargs: dict[str, Any]) -> None:
         )
 
     assert isinstance(trace, az.InferenceData)
-    write_results(name, trace)
-    return None
+    return trace
 
 
-_stan_model = """
-data {
-    int<lower=1> N;  // number of data points
-    int<lower=1> K;  // number of covariates
-    matrix[N, K] X;  // covariates
-    int y[N];        // observed counts
-}
-
-parameters {
-    real alpha;
-    vector[K] beta;
-    real<lower=0> reciprocal_phi;
-}
-
-transformed parameters {
-    vector[N] eta;
-    real phi;
-
-    eta = X * beta;
-    phi = 1.0 / reciprocal_phi;
-}
-
-model {
-    reciprocal_phi ~ cauchy(0.0, 10.0);
-    beta ~ normal(0.0, 5.0);
-    y ~ neg_binomial_2(eta, phi);
-}
-"""
+def _stan_code() -> str:
+    return read_stan_code("negative_binomial")
 
 
-def negbinom_stan_model(name: str, config_kwargs: dict[str, Any]) -> None:
+def _stan_idata() -> dict[str, Any]:
+    return {
+        "posterior_predictive": "y_hat",
+        "observed_data": ["y"],
+        "constant_data": ["X"],
+        "log_likelihood": {"y": "log_lik"},
+    }
+
+
+def negbinom_stan_model(config_kwargs: dict[str, Any]) -> az.InferenceData:
     config = NegBinomStanModelConfiguration(**config_kwargs)
     data = _generate_data(config)
     X = _model_matrix(data)
@@ -170,9 +153,9 @@ def negbinom_stan_model(name: str, config_kwargs: dict[str, Any]) -> None:
         "X": X,
         "y": np.array(data["nsneeze"].values),
     }
-    model = stan.build(_stan_model, data=stan_data)
-    trace = model.sample(
+    model = stan.build(_stan_code(), data=stan_data)
+    fit = model.sample(
         num_chains=config.chains, num_samples=config.draws, num_warmup=config.tune
     )
-    write_results(name, trace)
-    return None
+    trace = az.from_pystan(posterior=fit, **_stan_idata())
+    return trace
