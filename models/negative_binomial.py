@@ -1,10 +1,10 @@
 """Negative binomial models in PyMC3 and Stan."""
 
-from typing import Any, Union
+from dataclasses import dataclass
+from typing import Any, Optional, Union
 
 import arviz as az
 import numpy as np
-import pandas as pd
 import pymc3 as pm
 import pymc3.math as pmmath
 import stan
@@ -18,9 +18,9 @@ from .sampling_configurations import BasePymc3Configuration, BaseStanConfigurati
 class NegBinomDataConfig(BaseModel):
     """Configuration for the data generation for the negative binomial models."""
 
-    N: PositiveInt
+    N: PositiveInt  # number of data points
+    K: PositiveInt  # number of covariates
     alpha: PositiveFloat
-    scaler: PositiveFloat = 1.0
 
 
 class NegBinomPymc3ModelConfiguration(NegBinomDataConfig, BasePymc3Configuration):
@@ -35,7 +35,9 @@ class NegBinomStanModelConfiguration(NegBinomDataConfig, BaseStanConfiguration):
     ...
 
 
-def _get_nb_vals(mu: float, alpha: float, size: float) -> np.ndarray:
+def _get_nb_vals(
+    mu: Union[float, np.ndarray], alpha: float, size: Optional[float] = None
+) -> np.ndarray:
     """Generate negative binomially distributed samples.
 
     Generate negative binomially distributed samples by drawing a sample from a gamma
@@ -45,75 +47,53 @@ def _get_nb_vals(mu: float, alpha: float, size: float) -> np.ndarray:
     Source: PyMC3 GLM negative binomial regression example.
 
     Args:
-        mu (float): Centrality of the distribution.
+        mu (Union[float, np.ndarray]): Centrality of the distribution.
         alpha (float): Dispersion value.
-        size (float): Number of data points.
+        size (Optional[float]): Number of data points. If None, then the length of `mu`
+        is used.
 
     Returns:
         np.ndarray: Array of samples from the NB distribution.
     """
+    if size is None:
+        if isinstance(mu, float):
+            size = 1
+        else:
+            size = len(mu)
+
     g = stats.gamma.rvs(alpha, scale=mu / alpha, size=size)
     return stats.poisson.rvs(g)
 
 
-def _generate_data(config: NegBinomDataConfig) -> pd.DataFrame:
-    alpha = config.alpha
+@dataclass
+class NegativeBinomialData:
+    """Data for the negative binomial models."""
+
+    X: np.ndarray
+    y: np.ndarray
+
+
+def _generate_data(config: NegBinomDataConfig) -> NegativeBinomialData:
     N = config.N
-    theta_noalcohol_meds = 1 * config.scaler  # no alcohol, took an antihist
-    theta_alcohol_meds = 3 * config.scaler  # alcohol, took an antihist
-    theta_noalcohol_nomeds = 6 * config.scaler  # no alcohol, no antihist
-    theta_alcohol_nomeds = 36 * config.scaler  # alcohol, no antihist
-    df = pd.DataFrame(
-        {
-            "nsneeze": np.concatenate(
-                (
-                    _get_nb_vals(theta_noalcohol_meds, alpha, N),
-                    _get_nb_vals(theta_alcohol_meds, alpha, N),
-                    _get_nb_vals(theta_noalcohol_nomeds, alpha, N),
-                    _get_nb_vals(theta_alcohol_nomeds, alpha, N),
-                )
-            ),
-            "alcohol": np.concatenate(
-                (
-                    np.repeat(False, N),
-                    np.repeat(True, N),
-                    np.repeat(False, N),
-                    np.repeat(True, N),
-                )
-            ),
-            "nomeds": np.concatenate(
-                (
-                    np.repeat(False, N),
-                    np.repeat(False, N),
-                    np.repeat(True, N),
-                    np.repeat(True, N),
-                )
-            ),
-        }
-    )
-    return df
-
-
-def _model_matrix(data: pd.DataFrame) -> np.ndarray:
-    return (
-        data.copy()
-        .assign(intercept=1, alch_nomeds=lambda d: d.alcohol * d.nomeds)
-        .astype(int)[["intercept", "alcohol", "nomeds", "alch_nomeds"]]
-        .values
-    )
+    K = config.K
+    X = np.random.normal(0, 1, size=(N, K))
+    X[:, 0] = 1.0
+    beta = np.random.uniform(-3, 10, size=(K, 1))
+    mu = np.exp(np.dot(X, beta)).flatten()
+    y = _get_nb_vals(mu, alpha=config.alpha)
+    return NegativeBinomialData(X=X, y=y)
 
 
 def negbinom_pymc3_model(config_kwargs: dict[str, Any]) -> az.InferenceData:
     config = NegBinomPymc3ModelConfiguration(**config_kwargs)
     data = _generate_data(config)
-    X = _model_matrix(data)
 
     with pm.Model():
-        beta = pm.Normal("beta", 0, 5, shape=(4, 1))
-        eta = pm.Deterministic("eta", pmmath.dot(X, beta))
+        beta = pm.Normal("beta", 0, 5, shape=(config.K, 1))
+        eta = pm.Deterministic("eta", pmmath.dot(data.X, beta))
         mu = pmmath.exp(eta)
         alpha = pm.HalfCauchy("alpha", 10)
-        y = pm.NegativeBinomial("y", mu, alpha, observed=data.nsneeze)  # noqa: F841
+        y = pm.NegativeBinomial("y", mu, alpha, observed=data.y)  # noqa: F841
 
         trace = pm.sample(
             draws=config.draws,
@@ -145,13 +125,12 @@ def _stan_idata() -> dict[str, Any]:
 def negbinom_stan_model(config_kwargs: dict[str, Any]) -> az.InferenceData:
     config = NegBinomStanModelConfiguration(**config_kwargs)
     data = _generate_data(config)
-    X = _model_matrix(data)
 
     stan_data: dict[str, Union[int, np.ndarray]] = {
-        "N": data.shape[0],
-        "K": 4,
-        "X": X,
-        "y": np.array(data["nsneeze"].values),
+        "N": config.N,
+        "K": config.K,
+        "X": data.X,
+        "y": data.y,
     }
     model = stan.build(_stan_code(), data=stan_data)
     fit = model.sample(
