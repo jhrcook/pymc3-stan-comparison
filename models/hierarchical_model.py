@@ -8,6 +8,7 @@ import pymc3 as pm
 import stan
 from pydantic import BaseModel, PositiveInt
 
+from .models_utils import read_stan_code
 from .sampling_configurations import BasePymc3Configuration, BaseStanConfiguration
 
 
@@ -30,8 +31,8 @@ def _generate_data(config: HierarchicalDataConfig) -> dict[str, np.ndarray]:
     K = config.K  # number of features
 
     idx = np.repeat(np.arange(J), N)
-    mu_beta = np.random.uniform(-10, 10, K)
-    sigma_beta = np.random.uniform(1, 10, K)
+    mu_beta = np.random.uniform(-3, 3, K)
+    sigma_beta = np.random.uniform(1, 3, K)
     sigma = np.random.gamma(2.0, 2.0, 1)
 
     beta = np.hstack(
@@ -83,56 +84,22 @@ def hierarchical_pymc3_model(config_kwargs: dict[str, Any]) -> az.InferenceData:
     return trace
 
 
-_stan_model = """
-data {
-    int<lower=1> N;               // number of observations total
-    int<lower=1> J;               // number of groups
-    int<lower=1> K;               // number of features
-    int<lower=1,upper=J> idx[N];  // group indices
-    matrix[N,K] X;                // model matrix
-    vector[N] y;                  // response variable
-}
-
-parameters {
-    vector[K] mu_beta;
-    vector<lower=0>[K] mu_sigma;
-    vector[K] delta_beta[J];
-    real<lower=0> sigma;
-}
-
-transformed parameters {
-    // Non-centered parameterization.
-    vector[K] beta[J];
-    for(j in 1:J) {
-        beta[j] = mu_beta + mu_sigma .* delta_beta[j];
-    }
-}
-
-model {
-    // Linear predictor.
-    vector[N] mu;
-
-    // Priors.
-    mu_beta ~ normal(0, 5);
-    mu_sigma ~ cauchy(0, 2.5);
-    sigma ~ gamma(2, 0.1);
-
-    for(j in 1:J) {
-        delta_beta[j] ~ normal(0, 1);
-    }
-
-    for(n in 1:N) {
-        mu[n] = X[n] * beta[idx[n]];
-    }
-
-    y ~ normal(mu, sigma);
-}
-"""
-
-
 class HierarchicalStanModelConfiguration(HierarchicalDataConfig, BaseStanConfiguration):
 
     ...
+
+
+def _stan_code() -> str:
+    return read_stan_code("hierarchical_model")
+
+
+def _stan_idata() -> dict[str, Any]:
+    return {
+        "posterior_predictive": "y_hat",
+        "observed_data": ["y"],
+        "constant_data": ["x"],
+        "log_likelihood": {"y": "log_lik"},
+    }
 
 
 def hierarchical_stan_model(config_kwargs: dict[str, Any]) -> az.InferenceData:
@@ -147,9 +114,9 @@ def hierarchical_stan_model(config_kwargs: dict[str, Any]) -> az.InferenceData:
     for p in ["X", "y"]:
         stan_data[p] = data[p]
 
-    model = stan.build(_stan_model, data=stan_data)
+    model = stan.build(_stan_code(), data=stan_data)
     fit = model.sample(  # noqa: F841
         num_chains=config.chains, num_samples=config.draws, num_warmup=config.tune
     )
-    trace = az.from_pystan(posterior=fit)
+    trace = az.from_pystan(posterior=fit, **_stan_idata())
     return trace

@@ -97,7 +97,7 @@ def fit(
         provided, a default will be looked for in the environment, else an error is
         raised.
         save_dir (Optional[Path], optional): Directory to which model posterior files
-        should be saved.
+        should be saved. Defaults to None and the model is not saved.
     """
     config_file = _check_config_file(config_file)
     mdl_config = config.get_model_configuration(config_name, config_file)

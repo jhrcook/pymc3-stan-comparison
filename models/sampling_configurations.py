@@ -7,8 +7,8 @@ from pydantic import BaseModel, PositiveInt
 class BaseMcmcSamplingConfiguration(BaseModel):
     """Base MCMC sampling parameters."""
 
-    tune: PositiveInt
-    draws: PositiveInt
+    tune: PositiveInt = 1000
+    draws: PositiveInt = 1000
     chains: PositiveInt = 4
     cores: PositiveInt = 4
 
