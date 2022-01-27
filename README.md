@@ -1,5 +1,11 @@
 # Comparing performance of PyMC3 and Stan
 
+[![python](https://img.shields.io/badge/Python-3.9-3776AB.svg?style=flat&logo=python&logoColor=white)](https://www.python.org)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org/)
+[![pydocstyle](https://img.shields.io/badge/pydocstyle-enabled-AD4CD3)](http://www.pydocstyle.org/en/stable/)
+
 The goal of this project is to compare the performance between two popular probabilistic programming languages, [Stan](https://mc-stan.org) and [PyMC3](https://docs.pymc.io/en/v3/).
 
 **The results can be found here: [jhrcook.github.io/pymc3-stan-comparison/](https://jhrcook.github.io/pymc3-stan-comparison/)**
@@ -9,6 +15,17 @@ To add a new type of model, please see the guide below and feel free to ask for 
 You can also contribute to the data analysis by editing the analysis notebook: [docs/index.ipynb](docs/index.ipynb).
 
 > This project is functional, but still a work in progress.
+
+## Models
+
+Below is a list of the models currently integrated.
+They link to the corresponding Python module in the ['models/'](models/) directory and the file for the Stan code.
+
+1. [Simple linear regression](models/simple_linear_regression.py) ([Stan](models/simple_linear_regression.stan))
+1. [Hierarchical linear regression](models/hierarchical_model.py) ([Stan](models/hierarchical_model.stan))
+1. [Negative binomial GLM](models/negative_binomial.py) ([Stan](models/negative_binomial.stan))
+
+See the project's [issue tracker](https://github.com/jhrcook/pymc3-stan-comparison/issues) for models in the works or under consideration.
 
 ## To-Do
 

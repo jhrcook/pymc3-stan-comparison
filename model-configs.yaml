@@ -201,18 +201,218 @@
 
 # ---- Negative binomial model ----
 
-- name: "negbinom_pymc3_10-1"
+- name: "negbinom_pymc3_10-4-1"
   model: "NEGBINOM_PYMC3"
   mem: "4000"
   time: "00:10:00"
   config:
     N: 10
+    K: 4
     alpha: 1.0
 
-- name: "negbinom_stan_10-1"
+- name: "negbinom_pymc3_100-4-1"
+  model: "NEGBINOM_PYMC3"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 100
+    K: 4
+    alpha: 1.0
+
+- name: "negbinom_pymc3_1000-4-1"
+  model: "NEGBINOM_PYMC3"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 1000
+    K: 4
+    alpha: 1.0
+
+- name: "negbinom_pymc3_10-8-1"
+  model: "NEGBINOM_PYMC3"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 10
+    K: 8
+    alpha: 1.0
+
+- name: "negbinom_pymc3_100-8-1"
+  model: "NEGBINOM_PYMC3"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 100
+    K: 8
+    alpha: 1.0
+
+- name: "negbinom_pymc3_1000-8-1"
+  model: "NEGBINOM_PYMC3"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 1000
+    K: 8
+    alpha: 1.0
+
+- name: "negbinom_pymc3_10-4-5"
+  model: "NEGBINOM_PYMC3"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 10
+    K: 4
+    alpha: 5
+
+- name: "negbinom_pymc3_100-4-5"
+  model: "NEGBINOM_PYMC3"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 100
+    K: 4
+    alpha: 5
+
+- name: "negbinom_pymc3_1000-4-5"
+  model: "NEGBINOM_PYMC3"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 1000
+    K: 4
+    alpha: 5
+
+- name: "negbinom_pymc3_10-8-5"
+  model: "NEGBINOM_PYMC3"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 10
+    K: 8
+    alpha: 5
+
+- name: "negbinom_pymc3_100-8-5"
+  model: "NEGBINOM_PYMC3"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 100
+    K: 8
+    alpha: 5
+
+- name: "negbinom_pymc3_1000-8-5"
+  model: "NEGBINOM_PYMC3"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 1000
+    K: 8
+    alpha: 5
+
+- name: "negbinom_stan_10-4-1"
   model: "NEGBINOM_STAN"
   mem: "4000"
   time: "00:10:00"
   config:
     N: 10
+    K: 4
     alpha: 1.0
+
+- name: "negbinom_stan_100-4-1"
+  model: "NEGBINOM_STAN"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 100
+    K: 4
+    alpha: 1.0
+
+- name: "negbinom_stan_1000-4-1"
+  model: "NEGBINOM_STAN"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 1000
+    K: 4
+    alpha: 1.0
+
+- name: "negbinom_stan_10-8-1"
+  model: "NEGBINOM_STAN"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 10
+    K: 8
+    alpha: 1.0
+
+- name: "negbinom_stan_100-8-1"
+  model: "NEGBINOM_STAN"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 100
+    K: 8
+    alpha: 1.0
+
+- name: "negbinom_stan_1000-8-1"
+  model: "NEGBINOM_STAN"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 1000
+    K: 8
+    alpha: 1.0
+
+- name: "negbinom_stan_10-4-5"
+  model: "NEGBINOM_STAN"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 10
+    K: 4
+    alpha: 5
+
+- name: "negbinom_stan_100-4-5"
+  model: "NEGBINOM_STAN"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 100
+    K: 4
+    alpha: 5
+
+- name: "negbinom_stan_1000-4-5"
+  model: "NEGBINOM_STAN"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 1000
+    K: 4
+    alpha: 5
+
+- name: "negbinom_stan_10-8-5"
+  model: "NEGBINOM_STAN"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 10
+    K: 8
+    alpha: 5
+
+- name: "negbinom_stan_100-8-5"
+  model: "NEGBINOM_STAN"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 100
+    K: 8
+    alpha: 5
+
+- name: "negbinom_stan_1000-8-5"
+  model: "NEGBINOM_STAN"
+  mem: "4000"
+  time: "00:10:00"
+  config:
+    N: 1000
+    K: 8
+    alpha: 5
