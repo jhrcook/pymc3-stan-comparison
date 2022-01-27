@@ -1,10 +1,8 @@
-import pickle
-from pathlib import Path
-from typing import Union
+"""Model utilities."""
 
-import arviz as az
+from pathlib import Path
+
 import httpstan.cache
-import stan.fit
 from stan.model import Model as StanModel
 
 
@@ -13,12 +11,24 @@ def delete_stan_build(mdl: StanModel) -> None:
     return None
 
 
-def write_results(name: str, posterior: Union[stan.fit.Fit, az.InferenceData]) -> None:
-    out_dir = Path("model-results")
-    if not out_dir.exists():
-        out_dir.mkdir()
+def read_stan_code(name: str) -> str:
+    """Read Stan code from file to a string.
 
-    out_path = out_dir / f"{name}.pkl"
-    with open(out_path, "wb") as file:
-        pickle.dump(posterior, file)
-    return None
+    Args:
+        name (str): Name of the Stan code file (no extension, assumed to be '.stan').
+
+    Raises:
+        FileNotFoundError: If Stan file is not found.
+
+    Returns:
+        str: Stan code as a string.
+    """
+    stan_dir_path = Path(__file__).parent
+    stan_file_path = stan_dir_path / f"{name}.stan"
+
+    if not stan_file_path.exists():
+        raise FileNotFoundError(f"No Stan file: '{str(stan_file_path)}")
+
+    with open(stan_file_path, "r") as file:
+        code = "".join(list(file))
+    return code
