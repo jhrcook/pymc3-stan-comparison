@@ -3,12 +3,11 @@
 exclude: >
     (?x)^(
     renv/library/.*|
-    docs/.*
     )$
 
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v4.1.0
     hooks:
     -   id: no-commit-to-branch
         args: ["--branch", "master", "--branch", "main"]
@@ -26,13 +25,13 @@ repos:
       args: ["--profile", "black"]
 
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.910-1
+    rev: v0.930
     hooks:
     -   id: mypy
         additional_dependencies: [pydantic, types-PyYAML, types-python-dateutil]
 
 -   repo: https://github.com/psf/black
-    rev: 21.10b0
+    rev: 21.12b0
     hooks:
     -   id: black
 
@@ -48,7 +47,7 @@ repos:
     -   id: snakefmt
 
 -   repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.1.1
+    rev: 1.2.2
     hooks:
     -   id: nbqa-isort
         args: ["--profile=black"]

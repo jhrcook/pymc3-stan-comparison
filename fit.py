@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import os
-import pickle
 from itertools import product
 from pathlib import Path
+from time import time
 from typing import Optional
 
 import arviz as az
@@ -55,9 +55,8 @@ def _save_model_posterior(
     if not dir.exists():
         dir.mkdir()
 
-    out_path = dir / f"{name}.pkl"
-    with open(out_path, "wb") as file:
-        pickle.dump(mdl_post, file)
+    out_path = dir / f"{name}.netcdf"
+    mdl_post.to_netcdf(str(out_path))
     return None
 
 
@@ -69,8 +68,22 @@ def _check_config_file(config_file: Optional[Path]) -> Path:
     return default_config_file
 
 
+def _write_function_call_time(fpath: Path, call_time: float) -> None:
+    if not fpath.parent.exists():
+        fpath.parent.mkdir(parents=True)
+    with open(fpath, "a") as file:
+        file.write(str(call_time))
+        file.write("\n")
+    return None
+
+
+def _make_call_time_benchmark_fname(name: str) -> Path:
+    return Path("benchmarks") / (name + ".fxntime")
+
+
 @app.command()
 def fit(
+    name: str,
     config_name: str,
     config_file: Optional[Path] = None,
     save_dir: Optional[Path] = None,
@@ -78,17 +91,23 @@ def fit(
     """Fit a model from the configuration file.
 
     Args:
+        name (str): Unique name for this replicate.
         config_name (str): Name of the model.
         config_file (Optional[Path], optional): Path to the configuration file. If not
-        exists, a default will be looked for in the environment, else an error is
+        provided, a default will be looked for in the environment, else an error is
         raised.
         save_dir (Optional[Path], optional): Directory to which model posterior files
         should be saved.
     """
     config_file = _check_config_file(config_file)
     mdl_config = config.get_model_configuration(config_name, config_file)
+    tic = time()
     res = config.get_model_callable(mdl_config)(mdl_config.config)
-    _save_model_posterior(name=config_name, mdl_post=res, dir=save_dir)
+    toc = time()
+    _write_function_call_time(
+        fpath=_make_call_time_benchmark_fname(name), call_time=toc - tic
+    )
+    _save_model_posterior(name=name, mdl_post=res, dir=save_dir)
     return None
 
 

@@ -7,12 +7,17 @@ import yaml
 from snakemake.io import Wildcards, touch
 from dotenv import load_dotenv
 
-from src.pipeline_utils import get_theano_compdir, get_configuration_information
+from src.pipeline_utils import (
+    get_theano_compdir,
+    get_configuration_information,
+    make_replicates_configuration,
+)
 
 load_dotenv()
 
 # ---- Configure ----
 
+N_SEPARATE_JOBS: int = int(os.environ.get("N_SEPARATE_JOBS", 5))
 N_PROFILE_REPS: int = int(os.environ.get("N_PROFILE_REPS", 5))
 CONFIG_FILE: Path = Path(os.environ["CONFIG_FILE"])
 MODEL_FILES_DIR: Path = Path(os.environ.get("MODEL_FILES_DIR", None))
@@ -23,11 +28,20 @@ if not MODEL_FILES_DIR.exists():
     MODEL_FILES_DIR.mkdir()
 
 configurations = get_configuration_information(CONFIG_FILE)
+configurations = make_replicates_configuration(configurations, N_SEPARATE_JOBS)
 configuration_names = list(configurations.keys())
 
 
 def _get_config_params(w: Wildcards) -> dict[str, str]:
     return configurations[w.name]
+
+
+def get_config_name(w: Wildcards) -> str:
+    return _get_config_params(w)["name"]
+
+
+def get_config_replicate_num(w: Wildcards) -> str:
+    return _get_config_params(w)["rep"]
 
 
 def get_config_mem(w: Wildcards) -> str:
@@ -50,7 +64,6 @@ localrules:
     all,
     model_result_sizes,
     notebook,
-    check_model_outputs,
 
 
 rule all:
@@ -60,39 +73,30 @@ rule all:
 
 rule fit_model:
     output:
-        res=f"{MODEL_FILES_DIR}/{{name}}.pkl",
+        res=f"{MODEL_FILES_DIR}/{{name}}.netcdf",
+        fxn_time_file="benchmarks/{name}.fxntime",
     benchmark:
         repeat("benchmarks/{name}.tsv", N_PROFILE_REPS)
     conda:
         "environment.yaml"
     params:
+        config_name=lambda w: get_config_name(w),
+        replicate=lambda w: get_config_replicate_num(w),
         mem=lambda w: get_config_mem(w),
         time=lambda w: get_config_time(w),
         partition=lambda w: get_config_partition(w),
         theano_dir=get_theano_compdir,
     shell:
-        f"{{params.theano_dir}} ./fit.py fit {{wildcards.name}} --config-file={CONFIG_FILE} --save-dir={MODEL_FILES_DIR}"
-
-
-rule check_model_outputs:
-    input:
-        model_results=expand(
-            str(MODEL_FILES_DIR / "{name}.pkl"), name=configuration_names
-        ),
-        config=CONFIG_FILE,
-    conda:
-        "environment.yaml"
-    output:
-        touch_file=touch(".check-model-outputs.touch"),
-    shell:
-        f"./fit.py check-benchmarks-and-model-files benchmarks {MODEL_FILES_DIR} --config-file={{input.config}} --no-prune"
+        (
+            "{params.theano_dir} ./fit.py fit {wildcards.name} {params.config_name} "
+            + f"--config-file={CONFIG_FILE} --save-dir={MODEL_FILES_DIR} "
+        )
 
 
 rule model_result_sizes:
     input:
-        mdl_file_check=rules.check_model_outputs.output.touch_file,
         model_results=expand(
-            str(MODEL_FILES_DIR / "{name}.pkl"), name=configuration_names
+            str(MODEL_FILES_DIR / "{name}.netcdf"), name=configuration_names
         ),
     output:
         csv="model-result-file-sizes.csv",
@@ -105,7 +109,7 @@ rule model_result_sizes:
 rule notebook:
     input:
         model_results=expand(
-            str(MODEL_FILES_DIR / "{name}.pkl"), name=configuration_names
+            str(MODEL_FILES_DIR / "{name}.netcdf"), name=configuration_names
         ),
         nb="docs/index.ipynb",
         model_sizes=rules.model_result_sizes.output.csv,

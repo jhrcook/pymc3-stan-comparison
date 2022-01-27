@@ -101,7 +101,7 @@ parameters {
 }
 
 transformed parameters {
-    //* Non-centered parameterization.
+    // Non-centered parameterization.
     vector[K] beta[J];
     for(j in 1:J) {
         beta[j] = mu_beta + mu_sigma .* delta_beta[j];
@@ -109,16 +109,22 @@ transformed parameters {
 }
 
 model {
+    // Linear predictor.
     vector[N] mu;
+
+    // Priors.
     mu_beta ~ normal(0, 5);
     mu_sigma ~ cauchy(0, 2.5);
     sigma ~ gamma(2, 0.1);
+
     for(j in 1:J) {
         delta_beta[j] ~ normal(0, 1);
     }
+
     for(n in 1:N) {
         mu[n] = X[n] * beta[idx[n]];
     }
+
     y ~ normal(mu, sigma);
 }
 """
